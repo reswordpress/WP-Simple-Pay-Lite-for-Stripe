@@ -33,7 +33,8 @@
 
 .simpay-error {
   *zoom: 1;
-  color: #eb1c26; }
+  color: #eb1c26;
+  margin-bottom: 15px; }
   .simpay-error:before, .simpay-error:after {
     content: " ";
     display: table; }

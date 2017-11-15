@@ -33,6 +33,7 @@
 .simpay-error {
 	@include clearfix();
 	color: $error-text-color;
+	margin-bottom: 15px;
 }
 
 // Test mode badge
