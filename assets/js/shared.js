@@ -1,4 +1,4 @@
-/* global spGeneral, jQuery  */
+/* global spGeneral, jQuery */
 
 var spShared = {};
 

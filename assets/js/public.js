@@ -38,6 +38,9 @@ var simpayApp = {};
 
 		processForm: function( spFormElem ) {
 
+			// Find payment button
+			var paymentButton = spFormElem.find( '.simpay-payment-btn' );
+
 			// Set the form ID
 			var formId = spFormElem.data( 'simpay-form-id' );
 
@@ -47,8 +50,8 @@ var simpayApp = {};
 			// Set a local variable to hold all of the form information.
 			var formData = this.spFormData[ formId ];
 
-			// Variable to hold the Stripe configuration
-			var stripeHandler = null;
+			// Variables to hold the Stripe configuration
+			var stripeHandler  = null;
 
 			// Set formData array index of the current form ID to match the localized data passed over for form settings.
 			formData = $.extend( {},  localizedFormData.form.integers, localizedFormData.form.bools, localizedFormData.form.strings );
@@ -70,23 +73,26 @@ var simpayApp = {};
 
 			body.trigger( 'simpayFormVarsInitialized', [ spFormElem, formData ] );
 
-			// Stripe Checkout handler configuration.
-			// Only token callback function set here. All other params set in stripeParams.
-			// Chrome on iOS needs handler set before click event or else checkout won't open in a new tab.
-			// See "How do I prevent the Checkout popup from being blocked?"
-			// Full docs: https://stripe.com/docs/checkout#integration-custom
-			stripeHandler = StripeCheckout.configure( {
+			if ( paymentButton.length ) {
 
-				// Key param MUST be sent here instead of stripeHandler.open(). Discovered 8/11/16.
-				key: formData.stripeParams.key,
+				// Stripe Checkout handler configuration.
+				// Only token callback function set here. All other params set in stripeParams.
+				// Chrome on iOS needs handler set before click event or else checkout won't open in a new tab.
+				// See "How do I prevent the Checkout popup from being blocked?"
+				// Full docs: https://stripe.com/docs/checkout#integration-custom
+				stripeHandler = StripeCheckout.configure( {
 
-				token: handleStripeToken,
+					// Key param MUST be sent here instead of stripeHandler.open(). Discovered 8/11/16.
+					key: formData.stripeParams.key,
 
-				opened: function() {
-				},
-				closed: function() {
-				}
-			} );
+					token: handleStripeToken,
+
+					opened: function() {
+					},
+					closed: function() {
+					}
+				} );
+			}
 
 			// Internal Strike token callback function for StripeCheckout.configure
 			function handleStripeToken( token, args ) {
@@ -97,7 +103,9 @@ var simpayApp = {};
 				spFormElem.find( '.simpay-stripe-email' ).val( token.email );
 
 				// Handle args
-				simpayApp.handleStripeArgs( spFormElem, args );
+				if ( args ) {
+					simpayApp.handleStripeArgs( spFormElem, args );
+				}
 
 				// Disable original payment button and change text for UI feedback while POST-ing to Stripe.
 				spFormElem.find( '.simpay-payment-btn' )
