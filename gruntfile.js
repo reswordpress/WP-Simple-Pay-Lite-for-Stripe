@@ -130,8 +130,6 @@ module.exports = function( grunt ) {
 				flatten: true,
 				src: [
 					'!jquery/**',
-					'jquery-validation/dist/jquery.validate.js',
-					'jquery-validation/dist/jquery.validate.min.js',
 				    'chosen/chosen.jquery.js',
 				    'accountingjs/accounting.js',
 				    'accountingjs/accounting.min.js'

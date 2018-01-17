@@ -74,12 +74,6 @@ class Assets {
 				'ver'    => null,
 				'footer' => true,
 			),
-			'simpay-jquery-validate' => array(
-				'src'    => $js_path . 'vendor/jquery.validate' . $this->min . '.js',
-				'deps'   => array( 'jquery' ),
-				'ver'    => SIMPLE_PAY_VERSION,
-				'footer' => true,
-			),
 			'simpay-accounting'      => array(
 				'src'    => $js_path . 'vendor/accounting' . $this->min . '.js',
 				'deps'   => array(),
@@ -96,7 +90,6 @@ class Assets {
 				'src'    => $js_path . 'public' . $this->min . '.js',
 				'deps'   => array(
 					'jquery',
-					'simpay-jquery-validate',
 					'simpay-accounting',
 					'simpay-shared',
 				),
