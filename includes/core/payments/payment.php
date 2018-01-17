@@ -95,7 +95,7 @@ class Payment {
 			$this->amount = intval( $_POST['simpay_amount'] );
 		} else {
 			// Fallback to our set total amount
-			$this->amount = $simpay_form->total_amount;
+			$this->amount = $simpay_form->amount;
 		}
 
 		// Set the description

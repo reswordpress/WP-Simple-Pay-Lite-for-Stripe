@@ -60,7 +60,15 @@ class Default_Form extends Form {
 		$html = '';
 		$id   = 'simpay-form-' . $this->id;
 
-		$html .= '<form action="" method="POST" class="simpay-checkout-form ' . esc_attr( $id ) . '" id="' . esc_attr( $id ) . '" data-simpay-form-id="' . esc_attr( $this->id ) . '">';
+		do_action( 'simpay_before_payment_form' );
+
+		$html .= '<form action="" method="POST" class="' . $this->get_form_classes( $this->id ) . '" id="' . esc_attr( $id ) . '" data-simpay-form-id="' . esc_attr( $this->id ) . '">';
+
+		// TODO Add heading & subhead options
+		if ( true ) {
+			$html .= '<h1 class="simpay-checkout-form-heading">[Heading]</h1>';
+			$html .= '<h2 class="simpay-checkout-form-subhead">[Subhead]</h2>';
+		}
 
 		if ( ! empty( $this->custom_fields ) && is_array( $this->custom_fields ) ) {
 			$html .= $this->print_custom_fields();
@@ -68,13 +76,17 @@ class Default_Form extends Form {
 
 		$html .= '<input type="hidden" name="simpay_stripe_token" value="" class="simpay-stripe-token" />';
 		$html .= '<input type="hidden" name="simpay_stripe_email" value="" class="simpay-stripe-email" />';
-		$html .= '<input type="hidden" class="simpay_form_id" name="simpay_form_id" value="' . esc_attr( $this->id ) . '" />';
-
+		$html .= '<input type="hidden" name="simpay_form_id" value="' . esc_attr( $this->id ) . '" class="simpay_form_id" />';
 		$html .= '<input type="hidden" name="simpay_amount" value="" class="simpay-amount" />';
 
 		if ( $this->enable_shipping_address ) {
 			$html .= $this->shipping_fields();
 		}
+
+		// Form validation error message container
+		$html .= '<div class="simpay-error" id="' . esc_attr( $id ) . '-error"></div>';
+
+		$html .= simpay_get_test_mode_badge();
 
 		do_action( 'simpay_before_form_display' );
 
@@ -88,6 +100,16 @@ class Default_Form extends Form {
 		do_action( 'simpay_after_form_display' );
 	}
 
+	private function get_form_classes( $id ) {
+
+		$classes = apply_filters( 'simpay_form_classes', array(
+			'simpay-checkout-form',
+			'simpay-form-' . absint( $id ),
+		) );
+
+		return trim( implode( ' ', array_map( 'trim', array_map( 'sanitize_html_class', array_unique( $classes ) ) ) ) );
+	}
+
 	/**
 	 * Print out the custom fields.
 	 *
@@ -97,19 +119,29 @@ class Default_Form extends Form {
 
 		$html = '';
 
+		$html = apply_filters( 'simpay_before_custom_fields', $html );
+
 		if ( ! empty( $this->custom_fields ) && is_array( $this->custom_fields ) ) {
+
+			$i = 0;
+			$count = count($this->custom_fields);
+
 			foreach ( $this->custom_fields as $k => $v ) {
 
+				$i++;
+
 				switch ( $v['type'] ) {
+					case has_filter( 'simpay_custom_fields' ):
+						$html .= apply_filters( 'simpay_custom_fields', $html, $v, $count, $i );
+						break;
 					case 'payment_button':
 						$html .= Fields\Payment_Button::html( $v );
-						break;
-					case has_filter( 'simpay_custom_fields' ):
-						$html .= apply_filters( 'simpay_custom_fields', $html, $v );
 						break;
 				}
 			}
 		}
+
+		$html = apply_filters( 'simpay_after_custom_fields', $html );
 
 		return $html;
 	}

@@ -298,6 +298,23 @@ function simpay_is_test_mode() {
 }
 
 /**
+ * Return test mode badge html if in test mode.
+ *
+ * @return string
+ */
+function simpay_get_test_mode_badge() {
+	$html = '';
+
+	if ( simpay_is_test_mode() ) {
+		$html .= '<div class="simpay-test-mode-badge-container">';
+		$html .= '<span class="simpay-test-mode-badge">' . esc_html__( 'Test Mode', 'stripe' ) . '</span>';
+		$html .= '</div>';
+	}
+
+	return $html;
+}
+
+/**
  * Get the stored API Secret Key
  */
 function simpay_get_secret_key() {

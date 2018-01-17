@@ -38,23 +38,42 @@ class Settings {
 				<div id="payment-options-settings-panel" class="simpay-panel">
 					<?php
 
-					$payment_options_template = apply_filters( 'simpay_payment_options_template', 'views/tabs/tab-payment-options.php' );
+					$payment_options_template = apply_filters( 'simpay_payment_options_template', SIMPLE_PAY_INC . 'core/admin/metaboxes/views/tabs/tab-payment-options.php' );
 
-					include_once( $payment_options_template );
+					if ( file_exists( $payment_options_template ) ) {
+						include_once( $payment_options_template );
+					}
 
 					do_action( 'simpay_form_settings_meta_payment_options_panel', $post->ID );
+
 					?>
 				</div>
 
-				<!-- On-Page Form Display Options Tab -->
-				<div id="form-display-settings-panel" class="simpay-panel simpay-panel-hidden">
+				<!-- Form Display Options Tab -->
+				<div id="form-display-options-settings-panel" class="simpay-panel simpay-panel-hidden">
 					<?php
 
-					$form_display_template = apply_filters( 'simpay_form_display_template', 'views/tabs/tab-form-display.php' );
+					$form_display_options_template = apply_filters( 'simpay_form_options_template', '' );
 
-					include_once( $form_display_template );
+					if ( file_exists( $form_display_options_template ) ) {
+						include( $form_display_options_template );
+					}
+
+					?>
+				</div>
+
+				<!-- Custom Form Fields Options Tab -->
+				<div id="custom-form-fields-settings-panel" class="simpay-panel simpay-panel-hidden">
+					<?php
+
+					$form_display_template = apply_filters( 'simpay_form_display_template', SIMPLE_PAY_INC . 'core/admin/metaboxes/views/tabs/tab-custom-form-fields.php' );
+
+					if ( file_exists( $form_display_template ) ) {
+						include_once( $form_display_template );
+					}
 
 					do_action( 'simpay_form_settings_meta_form_display_panel', $post->ID );
+
 					?>
 				</div>
 
@@ -62,11 +81,14 @@ class Settings {
 				<div id="overlay-display-settings-panel" class="simpay-panel simpay-panel-hidden">
 					<?php
 
-					$overlay_display_template = apply_filters( 'simpay_overlay_display_template', 'views/tabs/tab-overlay-display.php' );
+					$overlay_display_template = apply_filters( 'simpay_overlay_display_template', SIMPLE_PAY_INC . 'core/admin/metaboxes/views/tabs/tab-overlay-display.php' );
 
-					include_once( $overlay_display_template );
+					if ( file_exists( $overlay_display_template ) ) {
+						include_once( $overlay_display_template );
+					}
 
 					do_action( 'simpay_form_settings_meta_overlay_display_panel', $post->ID );
+
 					?>
 				</div>
 
@@ -76,7 +98,9 @@ class Settings {
 
 					$subscription_options_template = apply_filters( 'simpay_subscription_options_template', SIMPLE_PAY_INC . 'core/admin/metaboxes/views/tabs/tab-subscription-options.php' );
 
-					include_once( $subscription_options_template );
+					if ( file_exists( $subscription_options_template ) ) {
+						include_once( $subscription_options_template );
+					}
 
 					do_action( 'simpay_form_settings_meta_subscription_display_panel', $post->ID );
 					?>
@@ -107,16 +131,22 @@ class Settings {
 				'class'  => array( 'active' ),
 				'icon'   => '',
 			),
+			'form_display_options'    => array(
+				'label'  => esc_html__( 'Form Display Options', 'stripe' ),
+				'target' => 'form-display-options-settings-panel',
+				'class'  => array(),
+				'icon'   => '',
+			),
 			'form_display'         => array(
-				'label'  => esc_html__( 'On-Page Form Display', 'stripe' ),
-				'target' => 'form-display-settings-panel',
+				'label'  => esc_html__( 'Custom Form Fields', 'stripe' ),
+				'target' => 'custom-form-fields-settings-panel',
 				'class'  => array(),
 				'icon'   => '',
 			),
 			'overlay_display'      => array(
 				'label'  => esc_html__( 'Checkout Overlay Display', 'stripe' ),
 				'target' => 'overlay-display-settings-panel',
-				'class'  => array(),
+				'class'  => array( 'toggle-_form_display_type-custom_fields_stripe_checkout' ),
 				'icon'   => '',
 			),
 			'subscription_options' => array(
