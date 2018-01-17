@@ -24,7 +24,6 @@ var spShared = {};
 				spShared.validateAmount( $( this ) );
 			} );
 
-			// Triggers
 			// Trigger the currency format for page load
 			body.find( '.simpay-currency-format' ).trigger( 'blur.simpayCurrencyFormat' );
 
@@ -40,12 +39,12 @@ var spShared = {};
 			}
 		},
 
-		formatCurrencyField: function( elem ) {
+		formatCurrencyField: function( el ) {
 
-			elem.val( function( index, value ) {
+			el.val( function( index, value ) {
 
 				// Some fields we want to allow nothing to be entered but still be formatted as an amount field
-				if ( elem.hasClass( 'simpay-allow-empty' ) && !elem.val() ) {
+				if ( el.hasClass( 'simpay-allow-empty' ) && !el.val() ) {
 					return '';
 				}
 
@@ -53,13 +52,13 @@ var spShared = {};
 			} );
 		},
 
-		validateAmount: function( elem ) {
+		validateAmount: function( el ) {
 
-			var amount = spShared.unformatCurrency( elem.val() );
+			var amount = spShared.unformatCurrency( el.val() );
 
 			// If the amount doesn't exist or is  less than 1
 			if ( !amount || spGeneral.integers.minAmount > parseFloat( amount ) ) {
-				elem.val( '' );
+				el.val( '' );
 
 				return false;
 			}
@@ -73,7 +72,7 @@ var spShared = {};
 			}
 
 			// Update format price string in input field.
-			elem.val( amount );
+			el.val( amount );
 		},
 
 		unformatCurrency: function( amount ) {
@@ -92,7 +91,6 @@ var spShared = {};
 	};
 
 	$( document ).ready( function( $ ) {
-
 		spShared.init();
 	} );
 

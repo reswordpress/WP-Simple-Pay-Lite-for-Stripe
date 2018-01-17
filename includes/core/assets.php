@@ -102,15 +102,21 @@ class Assets {
 		if ( 'disabled' !== simpay_get_global_setting( 'default_plugin_styles' ) ) {
 
 			$this->styles = array(
-				'stripe-checkout-button'     => array(
+				'google-font-roboto'     => array(
+					'src'   => 'https://fonts.googleapis.com/css?family=Roboto',
+					'deps'  => array(),
+					'ver'   => null,
+					'media' => 'all',
+				),
+				'stripe-checkout-button' => array(
 					'src'   => 'https://checkout.stripe.com/v3/checkout/button.css',
 					'deps'  => array(),
 					'ver'   => null,
 					'media' => 'all',
 				),
-				'simpay-public'              => array(
+				'simpay-public'          => array(
 					'src'   => $css_path . 'public' . $this->min . '.css',
-					'deps'  => array( 'stripe-checkout-button' ),
+					'deps'  => array( 'google-font-roboto', 'stripe-checkout-button' ),
 					'ver'   => SIMPLE_PAY_VERSION,
 					'media' => 'all',
 				),
