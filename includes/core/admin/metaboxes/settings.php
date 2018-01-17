@@ -30,7 +30,6 @@ class Settings {
 
 			<ul class="simpay-tabs">
 				<?php self::settings_tabs( $post ); ?>
-				<?php //do_action( 'simcal_settings_meta_tabs' ); ?>
 			</ul>
 
 			<div class="simpay-panels">
@@ -79,9 +78,11 @@ class Settings {
 
 					include_once( $subscription_options_template );
 
-					do_action( 'simpay_settings_meta_subscription_options_panel', $post->ID );
+					do_action( 'simpay_form_settings_meta_subscription_display_panel', $post->ID );
 					?>
 				</div>
+
+		    <?php do_action( 'simpay_form_settings_meta_options_panel', $post->ID ); ?>
 
 			</div>
 

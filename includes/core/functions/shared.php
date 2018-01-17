@@ -12,6 +12,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use SimplePay\Core\Abstracts\Form;
 
+// TODO Need function simpay_clean?
+
+/**
+ * Clean variables using sanitize_text_field. Arrays are cleaned recursively.
+ * Non-scalar values are ignored.
+ *
+ * @since  3.0
+ * @param  string|array $var
+ *
+ * @return string|array
+ */
+function simpay_clean( $var ) {
+	if ( is_array( $var ) ) {
+		return array_map( 'simpay_clean', $var );
+	} else {
+		return is_scalar( $var ) ? sanitize_text_field( $var ) : $var;
+	}
+}
+
 /**
  * Get a Simple Pay setting. It will check for both a form setting or a global setting option.
  *
@@ -179,7 +198,7 @@ function simpay_get_total( $formatted = true ) {
  * @return string
  */
 function simpay_get_url( $url ) {
-	return \SimplePay\Core\plugin()->get_url( $url );
+	return \SimplePay\Core\SimplePay()->get_url( $url );
 }
 
 /**
@@ -217,7 +236,7 @@ function simpay_admin_error( $message, $echo = true ) {
  * @return null|\SimplePay\Core\Abstracts\Form
  */
 function simpay_get_form( $object ) {
-	$objects = \SimplePay\Core\plugin()->objects;
+	$objects = \SimplePay\Core\SimplePay()->objects;
 
 	return $objects instanceof \SimplePay\Core\Objects ? $objects->get_form( $object ) : null;
 }
@@ -233,7 +252,7 @@ function simpay_get_form( $object ) {
  * @return null|\SimplePay\Core\Abstracts\Field
  */
 function simpay_get_field( $args, $name = '' ) {
-	$objects = \SimplePay\Core\plugin()->objects;
+	$objects = \SimplePay\Core\SimplePay()->objects;
 
 	return $objects instanceof \SimplePay\Core\Objects ? $objects->get_field( $args, $name ) : null;
 }

@@ -3,7 +3,7 @@ Contributors: moonstonemedia, pderksen, nickyoung87, nekojira
 Tags: stripe, payments, credit card, stripe payments, stripe checkout
 Requires at least: 4.7
 Tested up to: 4.9
-Stable tag: 2.0.4
+Stable tag: 2.0.9
 Requires PHP: 5.3
 License: GPLv2 or later
 
@@ -39,7 +39,6 @@ SSL note: Stripe requires that any page hosting a live checkout form be SSL (the
 * Support for 12 languages, 25 countries and 135+ currencies
 * Bitcoin payment option
 * Translation ready
-* Multiple Stripe API key support
 * [AffiliateWP](https://affiliatewp.com/) integration
 * Specify payment success & failure pages
 * Live/Test mode toggle
@@ -112,7 +111,34 @@ We'd love your help! Here's a few things you can do:
 
 == Changelog ==
 
-= 2.0.5 - TODO =
+= 2.0.9 - TODO =
+
+* Dev: Don't load custom sessions class in admin.
+* Fix: Fix and simplify payment form previews.
+
+= 2.0.8 - January 5, 2018 =
+
+* Fix: Add option of switching to native PHP sessions.
+* Fix: Force use of native PHP sessions when hosting with Pantheon.
+
+= 2.0.7 - December 21, 2017 =
+
+* Fix: (Better) session handling to work across various hosts. Back to using the current version of WP Session Manager (https://github.com/ericmann/wp-session-manager) (2.0.2).
+* Fix: Force use of native PHP sessions when hosting with Pantheon and using their native PHP sessions plugin.
+* Dev: Updated to Stripe PHP library v5.8.0.
+* Dev: Updated jQuery Validation & Chosen JS libraries.
+
+= 2.0.6 - December 12, 2017 =
+
+* Fix: Check for an existing session before starting a new one.
+
+= 2.0.5 - December 12, 2017 =
+
+* Fix: Session handling updated to work across various managed hosts. Now uses code from WP Native PHP Sessions (https://github.com/pantheon-systems/wp-native-php-sessions) over previously used WP Session Manager (https://github.com/ericmann/wp-session-manager).
+* Fix: PHP 7.2 incompatibility - Misuse of reserved keyword "Object".
+* Fix: Payment receipt session error message produced by a shortcode was improperly appearing in WP admin.
+* Dev: Added action hook for adding metabox setting panel content.
+* Dev: Updated to Stripe PHP library v5.7.0.
 
 = 2.0.4 - October 25, 2017 =
 

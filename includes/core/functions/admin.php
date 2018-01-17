@@ -128,7 +128,7 @@ function simpay_get_forms_list() {
  * @return array
  */
 function simpay_get_admin_pages() {
-	$objects = \SimplePay\Core\plugin()->objects;
+	$objects = \SimplePay\Core\SimplePay()->objects;
 
 	return $objects instanceof \SimplePay\Core\Objects ? $objects->get_admin_pages() : array();
 }
@@ -140,10 +140,10 @@ function simpay_get_admin_pages() {
  *
  * @param  string $page
  *
- * @return null|\SimplePay\Abstracts\Admin_Page
+ * @return null|\SimplePay\Core\Abstracts\Admin_Page
  */
 function simpay_get_admin_page( $page ) {
-	$objects = \SimplePay\Core\plugin()->objects;
+	$objects = \SimplePay\Core\SimplePay()->objects;
 
 	return $objects instanceof \SimplePay\Core\Objects ? $objects->get_admin_page( $page ) : null;
 }
