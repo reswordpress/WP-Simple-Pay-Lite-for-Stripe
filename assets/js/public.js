@@ -98,15 +98,13 @@ var simpayApp = {};
 				// Full docs: https://stripe.com/docs/checkout#integration-custom
 				stripeHandler = StripeCheckout.configure( {
 
-					// Key param MUST be sent here instead of stripeHandler.open(). Discovered 8/11/16.
+					// Key param MUST be sent here instead of stripeHandler.open().
 					key: formData.stripeParams.key,
-
-					token: handleStripeToken,
-
-					opened: function() {
+					token: function( token, args ){
+						handleStripeToken( token, args )
 					},
-					closed: function() {
-					}
+					opened: function() {},
+					closed: function() {}
 				} );
 			}
 
