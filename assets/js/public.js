@@ -48,26 +48,28 @@ var simpayApp = {};
 			// Grab the localized data for this form ID.
 			var localizedFormData = simplePayForms[ formId ];
 
-			// TODO Set a local variable to hold all of the form information. Need this?
-			// var formData = simpayApp.spFormData[ formId ];
-
 			// Set formData array index of the current form ID to match the localized data passed over for form settings.
 			var formData = $.extend( {}, localizedFormData.form.integers, localizedFormData.form.bools, localizedFormData.form.strings );
 
+			// Set form ID from data attribute.
 			formData.formId = formId;
 
 			// Set a finalAmount setting so that we can perform all the actions on this. That way if we need to reverse anything we leave the base amount untouched and can revert to it.
 			formData.finalAmount = formData.amount;
 
-			// Set the default quantity to 1
+			// Set the default quantity to 1.
 			formData.quantity = 1;
 
 			// Add a new object called stripeParams to the spFormData object. This contains only the stripeParams that need to be sent. This is so we don't have to manually set all the stripeParams
 			// And we can just use what was passed from PHP so we only include the minimum needed and let Stripe defaults take care of anything that's missing here.
 			formData.stripeParams = $.extend( {}, localizedFormData.stripe.strings, localizedFormData.stripe.bools );
 
-			// Set a fallback button label
+			// Set a fallback button label.
 			formData.oldPanelLabel = ( undefined !== formData.stripeParams.panelLabel ) ? formData.stripeParams.panelLabel : '';
+
+			// Set button element class that will trigger payment form submit.
+			// Different for Pro custom forms implementation.
+			formData.submitBtnClass = 'simpay-payment-btn';
 
 			body.trigger( 'simpayCoreFormVarsInitialized', [ spFormElem, formData ] );
 
@@ -84,12 +86,12 @@ var simpayApp = {};
 
 		setupStripeCheckout: function( spFormElem, formData ) {
 
-			var paymentButton = spFormElem.find( '.simpay-payment-btn' );
+			var submitBtn = spFormElem.find( '.' + formData.submitBtnClass );
 
 			// Variable to hold the Stripe configuration.
 			var stripeHandler = null;
 
-			if ( paymentButton.length ) {
+			if ( submitBtn.length ) {
 
 				// Stripe Checkout handler configuration.
 				// Only token callback function set here. All other params set in stripeParams.
@@ -108,13 +110,41 @@ var simpayApp = {};
 				} );
 			}
 
+			/** Form submitted through checkout button click or Enter key. */
+
+			function submitCoreForm() {
+
+				// Init flag for form validation state.
+				formData.isValid = true;
+
+				// Trigger custom event right before executing payment.
+				// For Pro version client-side validation and other client-side changes.
+				spFormElem.trigger( 'simpayBeforeStripePayment', [ spFormElem, formData ] );
+
+				// Now check validation state flag before continuing.
+				// There are no validation checks in the Lite version natively.
+				// But this is needed for Pro and/or custom code.
+				if ( ! formData.isValid ) {
+					return;
+				}
+
+				simpayApp.setCoreFinalAmount( spFormElem, formData );
+
+				// Add in the final amount to Stripe params.
+				// TODO Test accounting.js changes
+				formData.stripeParams.amount = parseInt( formData.finalAmount );
+
+				stripeHandler.open( formData.stripeParams );
+			}
+
 			/** Stripe token handler */
 
-			// TODO DRY/Simplify logic between core & pro?
+			// TODO DRY/Simplify/rename logic between core & pro?
 
 			function handleStripeToken( token, args ) {
 
-				// At this point the Stripe Checkout overlay is validated and submitted.
+				var submitBtn = spFormElem.find( '.' + formData.submitBtnClass );
+
 				// Set values to hidden elements to pass via POST when submitting the form for payment.
 				spFormElem.find( '.simpay-stripe-token' ).val( token.id );
 				spFormElem.find( '.simpay-stripe-email' ).val( token.email );
@@ -124,37 +154,23 @@ var simpayApp = {};
 					simpayApp.handleStripeShippingArgs( spFormElem, args );
 				}
 
-				// Disable original Payment button and change text for UI feedback while POST-ing to Stripe.
-				spFormElem.find( '.simpay-payment-btn' )
+				// Disable original form submit button and change text for UI feedback while POST-ing to Stripe.
+				submitBtn
 					.prop( 'disabled', true )
 					.find( 'span' )
 					.text( formData.loadingText );
 
-				// Remove original form submit event handler before calling again to "reset" it and submit normally.
-				spFormElem.off( 'submit', [ spFormElem, formData ] );
-
+				// Reset form submit handler to prevent an infinite loop.
+				// Then finally submit the form.
+				spFormElem.off( 'submit' );
 				spFormElem.submit();
 			}
 
-			/** Bind final payment button click event. */
+			/** Original form submit handler */
 
-			// Page-level initial payment button clicked. Use over form submit for more control/validation.
-			spFormElem.find( '.simpay-payment-btn' ).on( 'click.simpayPaymentBtn', function( e ) {
+			spFormElem.on( 'submit', function( e ) {
 				e.preventDefault();
-
-				// Trigger custom event right before executing payment.
-				spFormElem.trigger( 'simpayBeforeStripePayment', [ spFormElem, formData ] );
-
-				spShared.debugLog( 'Launch Stripe Checkout overlay.', formData );
-
-				simpayApp.setCoreFinalAmount( spFormElem, formData );
-
-				// Add in the final amount to Stripe params.
-				formData.stripeParams.amount = parseInt( formData.finalAmount );
-
-				spShared.debugLog( 'stripeParams', formData.stripeParams );
-
-				stripeHandler.open( formData.stripeParams );
+				submitCoreForm();
 			} );
 		},
 
@@ -193,7 +209,8 @@ var simpayApp = {};
 
 			spShared.debugLog( 'setCoreFinalAmount', formData );
 
-			formData.finalAmount = finalAmount.toFixed( 0 );
+			// TODO Test accounting.js changes
+			formData.finalAmount = accounting.unformat( accounting.toFixed( finalAmount, 0 ) );
 
 			// Fire trigger to do additional calculations in Pro.
 			body.trigger( 'simpayFinalizeCoreAmount', [ spFormElem, formData ] );
@@ -237,12 +254,13 @@ var simpayApp = {};
 			return accounting.formatMoney( amount, options );
 		},
 
+		// TODO Test accounting.js changes
 		convertFromCents: function( amount ) {
 
 			if ( spGeneral.booleans.isZeroDecimal ) {
 				return amount;
 			} else {
-				return ( amount / 100 ).toFixed( 2 );
+				return accounting.unformat( accounting.toFixed( amount / 100, 2 ) );
 			}
 		},
 
@@ -251,13 +269,12 @@ var simpayApp = {};
 			if ( spGeneral.booleans.isZeroDecimal ) {
 				return amount;
 			} else {
-				return ( amount * 100 );
+				return amount * 100;
 			}
 		}
 	};
 
 	$( document ).ready( function( $ ) {
-
 		simpayApp.init();
 	} );
 
