@@ -219,11 +219,9 @@ class Settings {
 		update_post_meta( $post_id, '_amount_type', $amount_type );
 
 		// Amount
-		if ( $is_zero_decimal ) {
-			$amount = isset( $_POST['_amount'] ) ? sanitize_text_field( $_POST['_amount'] ) : ( false !== get_post_meta( $post_id, '_amount', true ) ? get_post_meta( $post_id, '_amount', true ) : '100' );
-		} else {
-			$amount = isset( $_POST['_amount'] ) ? sanitize_text_field( $_POST['_amount'] ) : ( false !== get_post_meta( $post_id, '_amount', true ) ? get_post_meta( $post_id, '_amount', true ) : '1' );
-		}
+		// TODO Rewrite. Hard to read.
+		$amount = isset( $_POST['_amount'] ) ? sanitize_text_field( $_POST['_amount'] ) : ( false !== get_post_meta( $post_id, '_amount', true ) ? get_post_meta( $post_id, '_amount', true ) : simpay_global_minimum_amount() );
+
 		update_post_meta( $post_id, '_amount', $amount );
 
 		/** General Options **/

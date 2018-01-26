@@ -31,14 +31,14 @@
     .simpay-form-control .simpay-field-wrap:after {
       clear: both; }
 
-.simpay-error {
+.simpay-errors {
   *zoom: 1;
   color: #eb1c26;
   margin-bottom: 15px; }
-  .simpay-error:before, .simpay-error:after {
+  .simpay-errors:before, .simpay-errors:after {
     content: " ";
     display: table; }
-  .simpay-error:after {
+  .simpay-errors:after {
     clear: both; }
 
 .simpay-test-mode-badge-container .simpay-test-mode-badge {

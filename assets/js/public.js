@@ -15,9 +15,6 @@ var simpayApp = {};
 		// Internal organized collection of all form data
 		spFormData: {},
 
-		// Stripe Data?
-		spStripeData: {},
-
 		init: function() {
 
 			// Set main vars on init.
@@ -38,7 +35,7 @@ var simpayApp = {};
 
 		// Does this payment form use the Stripe Checkout overlay?
 		isStripeCheckoutForm: function( formData ) {
-			return ( undefined === formData.formDisplayType || 'custom_fields_stripe_checkout' === formData.formDisplayType );
+			return ( undefined === formData.formDisplayType ) || ( 'custom_fields_stripe_checkout' === formData.formDisplayType );
 		},
 
 		setupCoreForm: function( spFormElem ) {
@@ -49,12 +46,14 @@ var simpayApp = {};
 			var localizedFormData = simplePayForms[ formId ];
 
 			// Set formData array index of the current form ID to match the localized data passed over for form settings.
-			var formData = $.extend( {}, localizedFormData.form.integers, localizedFormData.form.bools, localizedFormData.form.strings );
+			var formData = $.extend( {}, localizedFormData.form.bools, localizedFormData.form.integers, localizedFormData.form.i18n, localizedFormData.form.strings );
 
 			// Set form ID from data attribute.
 			formData.formId = formId;
 
-			// Set a finalAmount setting so that we can perform all the actions on this. That way if we need to reverse anything we leave the base amount untouched and can revert to it.
+			// Set a finalAmount setting so that we can perform all the actions on this.
+			// That way if we need to reverse anything we leave the base amount untouched and can revert to it.
+			// .amount & .finalAmount prop values = 1 for $1.00 USD, 100 if a zero decimal currency.
 			formData.finalAmount = formData.amount;
 
 			// Set the default quantity to 1.
@@ -132,9 +131,12 @@ var simpayApp = {};
 
 				simpayApp.setCoreFinalAmount( spFormElem, formData );
 
-				// Add in the final amount to Stripe params.
-				// TODO Test accounting.js changes
-				formData.stripeParams.amount = parseInt( formData.finalAmount );
+				// Send the final amount to Stripe params.
+				// Stripe expects amounts in cents (100 for $1.00 USD / no decimals), so convert here.
+				formData.stripeParams.amount = spShared.convertToCents( formData.finalAmount );
+
+				// Set the same cents value to the hidden input for submitting form for processing.
+				spFormElem.find( '.simpay-amount' ).val( formData.stripeParams.amount );
 
 				stripeHandler.open( formData.stripeParams );
 			}
@@ -205,74 +207,13 @@ var simpayApp = {};
 		},
 
 		// Set the internal final amount property value as well as the hidden form field.
+		// .amount & .finalAmount prop values = 1 for $1.00 USD, 100 if a zero decimal currency.
 		setCoreFinalAmount: function( spFormElem, formData ) {
 
-			var finalAmount = formData.amount;
-
-			spShared.debugLog( 'setCoreFinalAmount', formData );
-
-			// TODO Test accounting.js changes
-			formData.finalAmount = accounting.unformat( accounting.toFixed( finalAmount, 0 ) );
+			formData.finalAmount = formData.amount;
 
 			// Fire trigger to do additional calculations in Pro.
 			body.trigger( 'simpayFinalizeCoreAmount', [ spFormElem, formData ] );
-
-			// Update amount hidden form field for processing.
-			spFormElem.find( '.simpay-amount' ).val( formData.finalAmount );
-		},
-
-		formatMoney: function( amount ) {
-
-			// Default format is to the left with no space
-			var format = '%s%v';
-			var options;
-
-			// Convert our amount from cents to a formatted amount
-			amount = simpayApp.convertFromCents( amount );
-
-			// Set currency position based on settings
-			if ( 'left_space' === spGeneral.strings.currencyPosition ) {
-
-				//1 Left with a space
-				format = '%s %v';
-			} else if ( 'right' === spGeneral.strings.currencyPosition ) {
-
-				// Right side no space
-				format = '%v%s';
-			} else if ( 'right_space' === spGeneral.strings.currencyPosition ) {
-
-				// Right side with space
-				format = '%v %s';
-			}
-
-			options = {
-				symbol: spGeneral.strings.currencySymbol,
-				decimal: spGeneral.strings.decimalSeparator,
-				thousand: spGeneral.strings.thousandSeparator,
-				precision: spGeneral.integers.decimalPlaces,
-				format: format
-			};
-
-			return accounting.formatMoney( amount, options );
-		},
-
-		// TODO Test accounting.js changes
-		convertFromCents: function( amount ) {
-
-			if ( spGeneral.booleans.isZeroDecimal ) {
-				return amount;
-			} else {
-				return accounting.unformat( accounting.toFixed( amount / 100, 2 ) );
-			}
-		},
-
-		convertToCents: function( amount ) {
-
-			if ( spGeneral.booleans.isZeroDecimal ) {
-				return amount;
-			} else {
-				return amount * 100;
-			}
 		}
 	};
 

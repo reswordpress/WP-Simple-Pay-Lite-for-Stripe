@@ -28,9 +28,9 @@
 	}
 }
 
-// Error messages
+// Error messages container
 
-.simpay-error {
+.simpay-errors {
 	@include clearfix();
 	color: $error-text-color;
 	margin-bottom: 15px;

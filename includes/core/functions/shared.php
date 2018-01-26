@@ -467,7 +467,7 @@ function simpay_shared_script_variables() {
 
 	$integers['integers'] = array(
 		'decimalPlaces' => simpay_get_decimal_places(),
-	    'minAmount'     => simpay_get_stripe_minimum_amount(),
+		'minAmount'     => simpay_global_minimum_amount(),
 	);
 
 	$final = apply_filters( 'simpay_shared_script_variables', array_merge( $strings, $bools, $i18n, $integers ) );
@@ -518,34 +518,6 @@ function simpay_is_zero_decimal( $currency = '' ) {
 	}
 
 	return false;
-}
-
-/**
- * Convert an amount to cents.
- *
- * @param        $amount
- * @param string $decimal_separator
- * @param string $thousand_separator
- *
- * @return float|int
- */
-function simpay_convert_amount_to_cents( $amount, $decimal_separator = '', $thousand_separator = '' ) {
-
-	$decimal_separator  = ( ! empty( $decimal_separator ) ? $decimal_separator : simpay_get_decimal_separator() );
-	$thousand_separator = ( ! empty( $thousand_separator ) ? $thousand_separator : simpay_get_thousand_separator() );
-
-	// Remove thousand separator
-	$amount = str_replace( $thousand_separator, '', $amount );
-
-	// Now replace decimal separator with an actual decimal point for processing purposes
-	$amount = str_replace( $decimal_separator, '.', $amount );
-
-	if ( simpay_is_zero_decimal() ) {
-		return intval( $amount );
-	} else {
-		return floatval( $amount ) * 100;
-	}
-
 }
 
 /**
@@ -612,22 +584,73 @@ function simpay_get_decimal_places() {
 }
 
 /**
- * Get the Stripe minimum amount
+ * Convert an amount from dollars to cents (if non-zero decimal currency).
+ * Uses global decimal separator setting ("." or ",").
+ * Like accounting.unformat removes formatting/cruft first.
+ * Also prevent negative values.
+ * Similar to combining our JS functions unformatCurrency + convertToCents together.
  *
- * @param bool $cents
+ * @param string|float $amount
+ * @param string $decimal_separator
+ * @param string $thousand_separator
  *
- * @return float
+ * @return int
  */
-function simpay_get_stripe_minimum_amount( $cents = false ) {
+function simpay_convert_amount_to_cents( $amount, $decimal_separator = '', $thousand_separator = '' ) {
 
-	// Check if we want the number in cents or a formatted amount based on the zero decimal amount
-	if ( $cents ) {
-		$minimum = '50';
+	$decimal_separator  = ( ! empty( $decimal_separator ) ? $decimal_separator : simpay_get_decimal_separator() );
+	$thousand_separator = ( ! empty( $thousand_separator ) ? $thousand_separator : simpay_get_thousand_separator() );
+
+	// Remove thousand separator
+	$amount = str_replace( $thousand_separator, '', $amount );
+
+	// Now replace decimal separator with an actual decimal point for processing purposes
+	$amount = str_replace( $decimal_separator, '.', $amount );
+
+	if ( simpay_is_zero_decimal() ) {
+		return abs( intval( $amount ) );
 	} else {
-		$minimum = simpay_is_zero_decimal() ? '50' : '.50';
+		return abs( intval( floatval( $amount ) * 100 ) );
 	}
 
-	return floatval( apply_filters( 'simpay_stripe_minimum_amount', $minimum ) );
+}
+
+/**
+ * Convert an amount from cents to dollars (if non-zero decimal currency).
+ * Amount param expects an unformatted number (int).
+ * Similar to our JS function convertToDollars.
+ *
+ * @param int $amount
+ *
+ * @return int|float
+ */
+function simpay_convert_amount_to_dollars( $amount ) {
+
+	if ( !simpay_is_zero_decimal() ) {
+		$amount = round( $amount / 100, simpay_get_decimal_places() );
+	}
+
+	return $amount;
+}
+
+// TODO Need $force_cents ?
+/**
+ * Get the global system-wide minimum amount.
+ * Stripe dictates minimum USD is 50 cents, but set to 100 cents/currency units as it can vary from currency to currency.
+ * Force cents format (no decimals) with param or if zero decimal currency.
+ *
+ * @return int
+ */
+function simpay_global_minimum_amount( $force_cents = false ) {
+
+	// Initially set to 1.00 for non-zero decimal currencies (i.e. $1.00 USD).
+	$amount = 1;
+
+	if ( simpay_is_zero_decimal() || $force_cents ) {
+		$amount = 100;
+	}
+
+	return floatval( apply_filters( 'simpay_global_minimum_amount', $amount ) );
 }
 
 /**
@@ -643,21 +666,16 @@ function simpay_get_stripe_minimum_amount( $cents = false ) {
 function simpay_formatted_amount( $amount, $currency = '', $show_symbol = true, $separator = '' ) {
 
 	if ( empty( $currency ) ) {
-		$symbol = simpay_get_currency_symbol( simpay_get_setting( 'currency' ) );
-	} else {
-		$symbol = simpay_get_currency_symbol( $currency );
+		$currency = simpay_get_setting( 'currency' );
 	}
+
+	$symbol = simpay_get_currency_symbol( $currency );
 
 	$position = simpay_get_setting( 'currency_position' );
 
-	// Non-zero
-	if ( simpay_is_zero_decimal( $currency ) ) {
-		$amount = number_format( intval( $amount ), 0, simpay_get_decimal_separator(), simpay_get_thousand_separator() );
-	} else {
-		$amount = number_format( intval( $amount ) / 100, simpay_get_decimal_places(), simpay_get_decimal_separator(), simpay_get_thousand_separator() );
-	}
+	$amount = number_format( floatval( $amount ), simpay_get_decimal_places(), simpay_get_decimal_separator(), simpay_get_thousand_separator() );
 
-	$amount = apply_filters( 'simpay_formatted_amount', $amount, $amount );
+	$amount = apply_filters( 'simpay_formatted_amount', $amount );
 
 	if ( $show_symbol ) {
 		if ( 'left' === $position ) {

@@ -84,7 +84,7 @@ class Default_Form extends Form {
 		}
 
 		// Form validation error message container
-		$html .= '<div class="simpay-error" id="' . esc_attr( $id ) . '-error"></div>';
+		$html .= '<div class="simpay-errors" id="' . esc_attr( $id ) . '-error"></div>';
 
 		$html .= simpay_get_test_mode_badge();
 
@@ -192,11 +192,11 @@ class Default_Form extends Form {
 		}
 
 		$integers['integers'] = array(
-			'amount'            => round( $this->amount ),
+			'amount' => floatval( $this->amount ),
 		);
 
 		$strings['strings'] = array(
-		    'loadingText' => $loading_text,
+			'loadingText' => $loading_text,
 		);
 
 		$form_variables = array_merge( $integers, $strings );
