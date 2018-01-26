@@ -102,11 +102,13 @@ var simpayApp = {};
 
 					// Key param MUST be sent here instead of stripeHandler.open().
 					key: formData.stripeParams.key,
-					token: function( token, args ){
-						handleStripeToken( token, args )
+					token: function( token, args ) {
+						handleStripeToken( token, args );
 					},
-					opened: function() {},
-					closed: function() {}
+					opened: function() {
+					},
+					closed: function() {
+					}
 				} );
 			}
 
@@ -124,7 +126,7 @@ var simpayApp = {};
 				// Now check validation state flag before continuing.
 				// There are no validation checks in the Lite version natively.
 				// But this is needed for Pro and/or custom code.
-				if ( ! formData.isValid ) {
+				if ( !formData.isValid ) {
 					return;
 				}
 
